@@ -16,6 +16,7 @@ class _Serial {
  public:
   void begin(int baud);
   bool operator!();
+  void println(const char* message);
 };
 
 extern class _Serial Serial;

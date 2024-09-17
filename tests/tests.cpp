@@ -117,6 +117,7 @@ void testHotDuration() {
   std::vector<double> rateErrors(loopSamples);
 
   for (int i = 0; i < loopSamples; i++) {
+    loop();
     temps[i] = getTemp();
     // printf("Faucet: %d\n", faucetValue);
     faucets[i] = (double)faucetValue * 100 / maxFaucet;  // Convert to percentage
@@ -124,7 +125,6 @@ void testHotDuration() {
     errors[i] = error * kp;
     cumErrors[i] = cumError * ki;
     rateErrors[i] = rateError * kd;
-    loop();
   }
 
   // Save the last temp and faucet values to CSV
@@ -140,10 +140,9 @@ void testHotDuration() {
   file.close();
 
   // Check that the temp is close to the goal temp
-  // const int allowedRange = 5;  // degrees
-  // double lastTemp = temps[loopSamples - 1];
-  // bool inRange = lastTemp > goalTemp - allowedRange && lastTemp < goalTemp + allowedRange;
-  // assert(inRange, "temp should be close to goal temp, but was " + std::to_string(lastTemp));
+  const int allowedRange = 5;  // degrees
+  double lastTemp = temps[loopSamples - 1];
+  assert(inRange(lastTemp, goalTemp, allowedRange), "temp should be close to goal temp, but was " + std::to_string(lastTemp));
 
   std::cout << "Test hot water passed!" << std::endl;
 }

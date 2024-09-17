@@ -3,6 +3,6 @@
 
 void hardwareInit();
 unsigned char getTemp();
-void setFaucet(double output);
+void setFaucet(unsigned char value);
 
 #endif  // HARDWARE_H_

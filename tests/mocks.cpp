@@ -18,6 +18,10 @@ bool _Serial::operator!() {
   return false;
 }
 
+void _Serial::println(const char* message) {
+  printf("%s\n", message);
+}
+
 unsigned char faucetValue = 0;
 
 double constrain(double value, double min, double max) {

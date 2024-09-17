@@ -15,8 +15,8 @@ tests: $(OBJS)
 	python .\plotcsv.py .\test3.csv
 
 # Arduino files
-$(ARD_OBJ): $(ARD_DIR)/temp_controller.cpp
-	${CC} ${CFLAGS} -c $< -o $@ -DTESTING
+$(ARD_OBJ): $(ARD_DIR)/temp_controller.ino
+	${CC} ${CFLAGS} -x c++ -c $< -o $@ -DTESTING
 
 ######################### GENERAL ############################
 
