@@ -6,7 +6,7 @@ from serial import SerialException
 from serial.tools import list_ports
 from threading import Thread
 
-HOT_WATER = 130
+HOT_WATER = 120
 COLD_WATER = 50
 MAX_FAUCET = 255
 current_hot_water = COLD_WATER

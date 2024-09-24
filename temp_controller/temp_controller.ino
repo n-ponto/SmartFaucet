@@ -62,6 +62,7 @@ void computePID() {
 void loop() {
   curTime = millis();  // get current time
   if (curTime > lastSampleTime + SAMPLE_PERIOD) {
+    goalTemp = getGoalTemp();
     curTemp = getTemp();
     computePID();
     goalFaucet = constrain(output + curFaucet, 0, MAX_FAUCET);
@@ -77,5 +78,5 @@ void loop() {
   }
   // Update servos
   refreshServos();
-  delay(20);
+  delay(SERVO_REFRESH_DELAY);
 }

@@ -10,18 +10,23 @@
 #endif
 #include "hardware.h"
 
-#define WRITE_0 0      // 750
-#define WRITE_180 180  // 2250
-
 #define THERM_PIN 2          // Pin for the thermometer
-#define MOTOR_ENABLE_PIN 8   // Relay to servos
+#define RELAY_PIN 8          // Relay to servos
 #define MAIN_SERVO_PIN 9     // Servo to move faucet
 #define ENGAGE_SERVO_PIN 10  // Servo to engage gears
-// #define DIAL_PIN int(A0)     // Dial
-#define MAX_DIAL 1023
+#define DIAL_PIN A0          // Dial
+#define MAX_DIAL 1023        // Max analog read value
 
-#define ENGAGE_SERVO_TOP 10
-#define ENGAGE_SERVO_BOTTOM 170
+#define ENGAGE_SERVO_TOP 10      // Top angle for the engage servo
+#define ENGAGE_SERVO_BOTTOM 170  // Bottom angle for the engage servo
+
+#define ENGAGE_SERVO_DELAY 300  // Time in ms to wait for the servo to engage/disengage
+#define RELAY_DELAY 15          // Time in ms to wait for the relay to engage/disengage
+
+#define MIN_GOAL 80
+#define MAX_GOAL 110
+
+const uint8_t engageServoDelaySteps = ENGAGE_SERVO_DELAY / SERVO_REFRESH_DELAY;  // Number of steps to wait for the servo to engage/disengage
 
 uint8_t motorPosition = 0;    // Current position of the stepper motor
 float tempReading = 0;        // Current tempurature reading
@@ -60,7 +65,7 @@ void thermInit() {
 void hardwareInit() {
   mainServo.attach(MAIN_SERVO_PIN);
   engageServo.attach(ENGAGE_SERVO_PIN);
-  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT);
   motorEnabled = true;
   setMotorEnable(false);
 
@@ -71,10 +76,10 @@ void hardwareInit() {
   lcd.print("Goal: ");
 
   // Set faucet limits to middle 80%
-  int fullRange = WRITE_180 - WRITE_0;
+  int fullRange = 180;
   int remove = fullRange / 10;
-  faucetMin = WRITE_0 + remove;
-  faucetMax = WRITE_0 + remove + (fullRange / 2);  // Min value + 90 degrees
+  faucetMin = remove;
+  faucetMax = remove + (fullRange / 2);  // Min value + 90 degrees
 #ifndef MOCK_TEMP
   thermInit();
 #endif
@@ -88,7 +93,7 @@ void manualControlMotor() {
   int value;
   uint8_t goalPosition;
   while (1 == 1) {
-    value = analogRead(A0);
+    value = analogRead(DIAL_PIN);
     goalPosition = map(value, 0, MAX_DIAL, 0, 179);
     engageServo.write(goalPosition);
     sprintf(goalStr, "%3d", goalPosition);
@@ -164,19 +169,32 @@ void setFaucet(uint8_t value) {
 }
 
 void setMotorEnable(bool enable) {
-  if (enable == motorEnabled) return;
+  if (motorEnabled == enable) return;
   motorEnabled = enable;
-  digitalWrite(MOTOR_ENABLE_PIN, enable ? HIGH : LOW);
-  delay(15);  // Wait for relay
-  uint8_t servoGoal = enable ? ENGAGE_SERVO_BOTTOM : ENGAGE_SERVO_TOP;
-  // lcd.clear();
-  // lcd.print(servoGoal);
-  engageServo.write(servoGoal);
-  engageServo.refresh();
-  // TODO: add delay somewhere that waits for the servo to raise
+  if (enable) {
+    // Enable motors before engaging
+    digitalWrite(RELAY_PIN, HIGH);
+    delay(RELAY_DELAY);
+  }
+  // Move servo
+  engageServo.write(enable ? ENGAGE_SERVO_BOTTOM : ENGAGE_SERVO_TOP);
+  for (uint8_t i = 0; i < engageServoDelaySteps; i++) {
+    engageServo.refresh();
+    delay(SERVO_REFRESH_DELAY);
+  }
+  if (!enable) {
+    // Disable motors after disengaging
+    digitalWrite(RELAY_PIN, LOW);
+    delay(RELAY_DELAY);
+  }
 }
 
 void refreshServos() {
   mainServo.refresh();
   engageServo.refresh();
+}
+
+uint8_t getGoalTemp() {
+  int value = analogRead(DIAL_PIN);
+  return static_cast<uint8_t>(map(value, 0, MAX_DIAL, MIN_GOAL, MAX_GOAL));
 }
