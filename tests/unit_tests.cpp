@@ -34,7 +34,6 @@ void testInit() {
   assert(curFaucet == 0, "faucet should be 0");
 
   hotWaterTemp = COLD_WATER;
-  simpleSetTemp();
   assert(getTemp() == COLD_WATER, "temp should be cold");
 
   unsigned char expectedTemp, actualValue;
@@ -42,7 +41,6 @@ void testInit() {
   setFaucet(MAX_FAUCET / 2);
   assert(inRange(curFaucet, MAX_FAUCET / 2, 1), "faucet should be half, was " + std::to_string(curFaucet));
   expectedTemp = COLD_WATER * 0.25 + hotWaterTemp * 0.75;
-  simpleSetTemp();
   actualValue = getTemp();
   assert(inRange(actualValue, expectedTemp, 1), "1 expected temp: " + std::to_string(expectedTemp) + ", was " + std::to_string(getTemp()));
 
@@ -54,7 +52,6 @@ void testInit() {
 
   setFaucet(0);
   assert(curFaucet == 0, "faucet should be 0");
-  simpleSetTemp();
   actualValue = getTemp();
   assert(actualValue == hotWaterTemp, "3 expected temp: " + std::to_string(hotWaterTemp));
 
