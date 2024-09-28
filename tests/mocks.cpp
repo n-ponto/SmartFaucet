@@ -6,9 +6,9 @@
 
 #include "..\temp_controller\constants.h"
 
-extern double hotWaterTemp;
+long mockTime = 0;
 
-unsigned long mockTime = 0;
+uint8_t (*getTempFunction)(void);
 
 void assertionFailure(std::string message) {
   std::cout << "\n[ASSERT FAILURE]: " << message << std::endl;
@@ -40,14 +40,7 @@ void hardwareInit() {
 }
 
 uint8_t getTemp() {
-  // Return weighted average of hot and cold water
-  // printf("FAUCET: %d\n", curFaucet);
-  double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
-  // printf("coldPercent: %f\n", coldPercent);
-  double hotPercent = 1.0 - coldPercent;
-  // printf("hotPercent: %f\n", hotPercent);
-  // printf("hotWaterTemp: %f\n", hotWaterTemp);
-  return (unsigned char)((hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent));
+  return getTempFunction();
 }
 
 uint8_t getGoalTemp() {

@@ -8,18 +8,33 @@
 #include "temp_controller.h"
 
 double hotWaterTemp;
+extern uint8_t (*getTempFunction)(void);
 
+/// @brief Check if a value is within a range of a target
+/// @param value value to check
+/// @param target target value
+/// @param range allowed range
+/// @return true if value is within range of target
 bool inRange(int value, int target, int range) {
   return value >= target - range && value <= target + range;
 }
 
-void testInit() {
-  setup();
+/// @brief Sets the thermometer temp reading to the weighted average of the hot and cold water temps
+/// @param cold cold water temp
+/// @param hot hot water temp
+/// @param faucet amount the cold faucet is open
+uint8_t simpleSetTemp() {
+  double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
+  double hotPercent = 1.0 - coldPercent;
+  return static_cast<uint8_t>((hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent));
+}
 
+void testInit() {
   // Check that the initial faucet value is 0
   assert(curFaucet == 0, "faucet should be 0");
 
   hotWaterTemp = COLD_WATER;
+  simpleSetTemp();
   assert(getTemp() == COLD_WATER, "temp should be cold");
 
   unsigned char expectedTemp, actualValue;
@@ -27,6 +42,7 @@ void testInit() {
   setFaucet(MAX_FAUCET / 2);
   assert(inRange(curFaucet, MAX_FAUCET / 2, 1), "faucet should be half, was " + std::to_string(curFaucet));
   expectedTemp = COLD_WATER * 0.25 + hotWaterTemp * 0.75;
+  simpleSetTemp();
   actualValue = getTemp();
   assert(inRange(actualValue, expectedTemp, 1), "1 expected temp: " + std::to_string(expectedTemp) + ", was " + std::to_string(getTemp()));
 
@@ -38,6 +54,7 @@ void testInit() {
 
   setFaucet(0);
   assert(curFaucet == 0, "faucet should be 0");
+  simpleSetTemp();
   actualValue = getTemp();
   assert(actualValue == hotWaterTemp, "3 expected temp: " + std::to_string(hotWaterTemp));
 
@@ -45,8 +62,6 @@ void testInit() {
 }
 
 void testOneColdLoop() {
-  setup();
-
   assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
   assert(output == 0, "output should init 0, was " + std::to_string(output));
 
@@ -66,8 +81,6 @@ void testOneColdLoop() {
 }
 
 void testColdWater() {
-  setup();
-
   assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
   assert(output == 0, "output should init 0, was " + std::to_string(output));
 
@@ -89,9 +102,17 @@ void testColdWater() {
   std::cout << "Test cold water passed!" << std::endl;
 }
 
+void executeTest(std::string name, void (*test)()) {
+  std::cout << "Running test: " << name << std::endl;
+  setup();
+  test();
+  std::cout << "Test " << name << " passed!" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
-  testInit();
-  testOneColdLoop();
-  testColdWater();
+  getTempFunction = &simpleSetTemp;
+  executeTest("init", testInit);
+  executeTest("one cold loop", testOneColdLoop);
+  executeTest("cold water", testColdWater);
   return 0;
 }

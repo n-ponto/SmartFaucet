@@ -28,8 +28,18 @@ with open(filename, newline='') as csvfile:
         #     print(",".join(parts))
 fig, (ax1, ax2) = plt.subplots(2, 1)
 
-ax1.plot([90] * array.shape[0], label='goal', linestyle='--', color='green')
-ax2.plot([0] * array.shape[0], label='zero', linestyle='--', color='green')
+x = None
+time_header = 'Time (ms)'
+if time_header in headers:
+    ax1.set_xlabel(time_header)
+    ax2.set_xlabel(time_header)
+    idx = headers.index(time_header)
+    x = array[:, idx]
+    array = np.delete(array, idx, 1)
+    headers.remove(time_header)
+
+ax1.plot(x, [90] * array.shape[0], label='goal', linestyle='--', color='green')
+ax2.plot(x, [0] * array.shape[0], label='zero', linestyle='--', color='green')
 # Plot the data
 # print(array.shape)
 # ax2 = ax1.twinx()
@@ -37,9 +47,12 @@ for i, h in enumerate(headers):
     # Define line name and data
     # print(array[:5, i])
     if h.lower() in ['output', 'p', 'i', 'd']:
-        ax2.plot(array[:, i], label=h)
+        ax2.plot(x, array[:, i], label=h)
+    elif (any(x in h.lower() for x in ['theory', 'therm'])):
+        ax1.plot(x, array[:, i], label=h, linestyle='--')
     else:
-        ax1.plot(array[:, i], label=h)
+        ax1.plot(x, array[:, i], label=h)
+
 
 # Show the plot
 ax1.legend()
