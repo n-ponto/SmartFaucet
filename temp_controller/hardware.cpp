@@ -1,4 +1,4 @@
-#define SIMULATE
+// #define SIMULATE
 #include <Arduino.h>
 // #include <ServoTimer2.h>
 #include <Adafruit_SoftServo.h>
@@ -10,10 +10,10 @@
 #endif
 #include "hardware.h"
 
-#define THERM_PIN 2          // Pin for the thermometer
-#define RELAY_PIN 8          // Relay to servos
+#define ENGAGE_SERVO_PIN 8  // Servo to engage gears
 #define MAIN_SERVO_PIN 9     // Servo to move faucet
-#define ENGAGE_SERVO_PIN 10  // Servo to engage gears
+#define RELAY_PIN 10          // Relay to servos
+#define THERM_PIN 11         // Pin for the thermometer
 #define DIAL_PIN A0          // Dial
 #define MAX_DIAL 1023        // Max analog read value
 
@@ -34,7 +34,7 @@ int faucetMin, faucetMax;     // Min and max allowed values for the faucet
 bool motorEnabled;            // Whether the motor is enabled or not
 char tempStr[4], goalStr[4];  // Strings containing for displaying current and goal tempuratures
 
-LiquidCrystal lcd(3, 4, 5, 6, 7, 12);
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 
 #ifndef MOCK_TEMP
 OneWire oneWire(THERM_PIN);
@@ -132,7 +132,7 @@ uint8_t getTemp() {
     }
   }
 #ifndef SIMULATE
-  currentTemp = temp;
+  tempReading = temp;
 #endif
 #else
   // Instead of reading from the thermometer, read from the serial port
@@ -141,7 +141,7 @@ uint8_t getTemp() {
     Serial.readString();
     Serial.print("Got value: ");
     Serial.println(val);
-    currentTemp = val;
+    tempReading = val;
   }
 #endif
 #ifdef SIMULATE

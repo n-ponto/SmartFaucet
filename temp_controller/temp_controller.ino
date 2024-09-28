@@ -6,11 +6,7 @@
 #else
 #include "../tests/mocks.h"
 #endif
-
-#define MOTOR_DISABLE_DELAY 3000  // Time in ms before disabling the motor
-#define SAMPLE_PERIOD 200         // Delay in ms between updates
-#define MAX_FAUCET 255            // Max value for the faucet
-#define OUPUT_NOISE_FILTER 10     // Amount of output noise to ignore
+#include "constants.h"
 
 unsigned long lastSampleTime = 0;
 unsigned long lastMotorUpdateTime = 0;
@@ -25,10 +21,8 @@ double kd = 0;
 
 unsigned long curTime, prevTime;
 double elapsedTime;
-double error;
-double lastError;
+double error, rateError, cumError, lastError;
 double input, output;
-double rateError, cumError;
 
 void setup() {
   Serial.begin(9600);
@@ -44,7 +38,6 @@ void setup() {
   hardwareInit();
   // manualControlMotor();
 }
-
 
 void computePID() {
   elapsedTime = (double)(curTime - prevTime);  // compute time elapsed from previous computation

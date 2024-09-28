@@ -2,11 +2,17 @@
 # Usage: python plotcsv.py <filename.csv>
 
 import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Read the data from the CSV file
 filename = sys.argv[1]
+
+if not os.path.exists(filename):
+    print("File not found")
+    sys.exit(1)
+
 # filename = "test3.csv"
 with open(filename, newline='') as csvfile:
     csvreader = csvfile.readlines()

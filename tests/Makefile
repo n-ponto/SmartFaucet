@@ -5,14 +5,14 @@ CC = g++
 ARD_DIR = ../temp_controller
 
 ######################### TEMP CONTROLLER ############################
-TEST_OBJS = tests.o mocks.o
 ARD_OBJ = temp_controller.o
-OBJS = $(TEST_OBJS) $(ARD_OBJ)
 
-tests: $(OBJS)
-	${CC} ${CFLAGS} $^ -o $@
-	./tests.exe
+all: unit_tests simulate_tests
 	python .\plotcsv.py .\test3.csv
+
+unit_tests simulate_tests: % : %.o mocks.o $(ARD_OBJ)
+	${CC} ${CFLAGS} $^ -o $@
+	./$@.exe
 
 # Arduino files
 $(ARD_OBJ): $(ARD_DIR)/temp_controller.ino

@@ -1,8 +1,6 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
-#define SERVO_REFRESH_DELAY 20  // ms
-
 void refreshServos();
 void hardwareInit();
 uint8_t getTemp();
