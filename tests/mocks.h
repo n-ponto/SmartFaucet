@@ -12,7 +12,8 @@
 typedef unsigned char uint8_t;
 
 extern uint8_t curFaucet;
-extern uint8_t curTemp, goalTemp;
+extern uint8_t goalTemp;
+extern float curTemp;
 
 extern double error, cumError, rateError, output;
 extern double kp, ki, kd;
@@ -32,7 +33,7 @@ extern class _Serial Serial;
 // Mock hardware functions
 void refreshServos();
 void hardwareInit();
-uint8_t getTemp();
+float getTemp();
 uint8_t getGoalTemp();
 void setFaucet(uint8_t value);
 void manualControlMotor();

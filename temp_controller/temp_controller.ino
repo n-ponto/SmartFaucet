@@ -8,21 +8,37 @@
 #endif
 #include "constants.h"
 
+#define CUM_ERROR_DECAY 0.9
+
 unsigned long lastSampleTime = 0;
 unsigned long lastMotorUpdateTime = 0;
 
 uint8_t curFaucet, goalFaucet;
-uint8_t curTemp, goalTemp;
+float curTemp;
+uint8_t goalTemp;
 
 // PID constants
-double kp = 5;
-double ki = 0;
-double kd = 0;
+double kp = 2;
+double ki = 0.00015;
+double kd = 500;
 
 unsigned long curTime, prevTime;
 double elapsedTime;
 double error, rateError, cumError, lastError;
 double input, output;
+
+void computePID() {
+  elapsedTime = (double)(curTime - prevTime);  // compute time elapsed from previous computation
+
+  error = curTemp - goalTemp;                                       // determine error
+  cumError = (error * elapsedTime) + (cumError * CUM_ERROR_DECAY);  // compute integral
+  rateError = (error - lastError) / elapsedTime;                    // compute derivative
+
+  output = (kp * error) + (ki * cumError) + (kd * rateError);  // PID output
+
+  lastError = error;   // remember current error
+  prevTime = curTime;  // remember current time
+}
 
 void setup() {
   Serial.begin(9600);
@@ -34,27 +50,18 @@ void setup() {
   rateError = 0;
   error = 0;
   goalTemp = 90;
-  prevTime = millis();
+  curTime = prevTime = millis();
   hardwareInit();
-  // manualControlMotor();
-}
 
-void computePID() {
-  elapsedTime = (double)(curTime - prevTime);  // compute time elapsed from previous computation
-
-  error = curTemp - goalTemp;                     // determine error
-  cumError += error * elapsedTime;                // compute integral
-  rateError = (error - lastError) / elapsedTime;  // compute derivative
-
-  output = (kp * error) + (ki * cumError) + (kd * rateError);  // PID output
-
-  lastError = error;   // remember current error
-  prevTime = curTime;  // remember current time
+  // Run initial computation to get the first output
+  goalTemp = getGoalTemp();
+  curTemp = getTemp();
+  computePID();
 }
 
 void loop() {
   curTime = millis();  // get current time
-  if (curTime > lastSampleTime + SAMPLE_PERIOD) {
+  if (curTime >= lastSampleTime + SAMPLE_PERIOD) {
     goalTemp = getGoalTemp();
     curTemp = getTemp();
     computePID();

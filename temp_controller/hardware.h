@@ -3,7 +3,7 @@
 
 void refreshServos();
 void hardwareInit();
-uint8_t getTemp();
+float getTemp();
 uint8_t getGoalTemp();
 void setFaucet(uint8_t value);
 void manualControlMotor();

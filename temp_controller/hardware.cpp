@@ -115,7 +115,7 @@ void updateScreen(uint8_t temp, uint8_t goal) {
 }
 
 /// Read the tempurature from the thermometer
-uint8_t getTemp() {
+float getTemp() {
 #ifndef MOCK_TEMP
   // Get real tempurature reading from thermometer
   sensors.requestTemperatures();
@@ -151,7 +151,7 @@ uint8_t getTemp() {
   }
 #endif
   // Simulation communicates with computer over serial
-  return static_cast<uint8_t>(round(tempReading));
+  return tempReading;
 }
 
 /// Set the faucet stepper motor to a certain value

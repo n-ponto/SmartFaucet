@@ -48,7 +48,7 @@ for i, h in enumerate(headers):
     # print(array[:5, i])
     if h.lower() in ['output', 'p', 'i', 'd']:
         ax2.plot(x, array[:, i], label=h)
-    elif (any(x in h.lower() for x in ['theory', 'therm'])):
+    elif (any(x in h.lower() for x in ['theory'])):
         ax1.plot(x, array[:, i], label=h, linestyle='--')
     else:
         ax1.plot(x, array[:, i], label=h)

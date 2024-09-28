@@ -7,12 +7,12 @@
 #include "mocks.h"
 #include "temp_controller.h"
 
-extern uint8_t (*getTempFunction)(void);
+extern float (*getTempFunction)(void);
 
 #define ROOM_TEMP 68
 
 const int tempDelayMs = 1000;   // Delay in ms before temp reflects faucet change
-const int thermDelayMs = 3000;  // Delay in ms before thermometer reflects real temp value
+const int thermDelayMs = 4000;  // Delay in ms before thermometer reflects real temp value
 double hotWaterTemp;
 
 // The tempurature values
@@ -26,19 +26,18 @@ const int thermDelaySamples = thermDelayMs / SAMPLE_PERIOD;
 const double tempDelayWeight = 1.0 / tempDelaySamples;
 const double thermDelayWeight = 1.0 / thermDelaySamples;
 
-uint8_t simulateTemp() {
+float simulateTemp() {
   // Calculate real water temp based on faucet
   double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
   double hotPercent = 1.0 - coldPercent;
   theoreticalTemp = (hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent);
   realTemp = realTemp * (1 - tempDelayWeight) + theoreticalTemp * tempDelayWeight;
-
   // Repeat for thermometer temp
   thermTemp = thermTemp * (1 - thermDelayWeight) + realTemp * thermDelayWeight;
   return thermTemp;
 }
 
-void testHotDuration() {
+void runSimulation() {
   // Hot water starts hot
   hotWaterTemp = HOT_WATER;
   setup();
@@ -83,6 +82,6 @@ void testHotDuration() {
 
 int main(int argc, char *argv[]) {
   getTempFunction = &simulateTemp;
-  testHotDuration();
+  runSimulation();
   return 0;
 }

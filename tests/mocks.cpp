@@ -8,7 +8,7 @@
 
 long mockTime = 0;
 
-uint8_t (*getTempFunction)(void);
+float (*getTempFunction)(void);
 
 void assertionFailure(std::string message) {
   std::cout << "\n[ASSERT FAILURE]: " << message << std::endl;
@@ -39,7 +39,7 @@ void hardwareInit() {
   // Do nothing
 }
 
-uint8_t getTemp() {
+float getTemp() {
   return getTempFunction();
 }
 

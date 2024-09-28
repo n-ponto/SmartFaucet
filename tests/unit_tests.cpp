@@ -8,7 +8,7 @@
 #include "temp_controller.h"
 
 double hotWaterTemp;
-extern uint8_t (*getTempFunction)(void);
+extern float (*getTempFunction)(void);
 
 /// @brief Check if a value is within a range of a target
 /// @param value value to check
@@ -23,10 +23,10 @@ bool inRange(int value, int target, int range) {
 /// @param cold cold water temp
 /// @param hot hot water temp
 /// @param faucet amount the cold faucet is open
-uint8_t simpleSetTemp() {
+float simpleSetTemp() {
   double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
   double hotPercent = 1.0 - coldPercent;
-  return static_cast<uint8_t>((hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent));
+  return (hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent);
 }
 
 void testInit() {
@@ -60,14 +60,13 @@ void testInit() {
 
 void testOneColdLoop() {
   assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
-  assert(output == 0, "output should init 0, was " + std::to_string(output));
 
   // Hot water is cold, so should do nothing
   hotWaterTemp = COLD_WATER;
   // printf("Looping\n");
   loop();
   // printf("Done looping\n");
-  unsigned char temp = getTemp();
+  float temp = getTemp();
   // printf("Got temp: %d\n", temp);
   assert(0.1 > curFaucet && curFaucet >= 0, "faucet should be 0, was " + std::to_string(curFaucet));
   assert(output <= 0, "output should be <=0, was " + std::to_string(output));
@@ -79,7 +78,6 @@ void testOneColdLoop() {
 
 void testColdWater() {
   assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
-  assert(output == 0, "output should init 0, was " + std::to_string(output));
 
   // Hot water is cold, do nothing
   hotWaterTemp = COLD_WATER;
@@ -88,7 +86,7 @@ void testColdWater() {
   int loopSamples = 30 * 1000 / SAMPLE_PERIOD;
   for (int i = 0; i < loopSamples; i++) {
     loop();
-    unsigned char temp = getTemp();
+    float temp = getTemp();
     assert(temp < goalTemp, "temp should be less than goal temp, was " + std::to_string((int)temp) + " goal temp: " + std::to_string(goalTemp));
 
     assert(output <= 0, "output should be 0, was " + std::to_string(output));
