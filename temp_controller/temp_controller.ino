@@ -8,7 +8,7 @@
 #endif
 #include "constants.h"
 
-#define CUM_ERROR_DECAY 0.9
+#define CUM_ERROR_DECAY 0.95
 
 unsigned long lastSampleTime = 0;
 unsigned long lastMotorUpdateTime = 0;
@@ -18,9 +18,12 @@ float curTemp;
 uint8_t goalTemp;
 
 // PID constants
-double kp = 2;
-double ki = 0.00015;
-double kd = 500;
+double kp = 1;
+double ki = 0.0000;
+double kd = 700;
+
+const double closeLowTempRange = 10, closeHighTempRange = 2;  // The range of temperatures that are considered "close" to the goal temperature
+const double closeKdMultiplier = 5;                           // Multiply derivative term by this amount when close to the goal temperature
 
 unsigned long curTime, prevTime;
 double elapsedTime;
@@ -33,6 +36,11 @@ void computePID() {
   error = curTemp - goalTemp;                                       // determine error
   cumError = (error * elapsedTime) + (cumError * CUM_ERROR_DECAY);  // compute integral
   rateError = (error - lastError) / elapsedTime;                    // compute derivative
+
+  // If near the goal temperature and getting hotter, increase the derivative term
+  if (((curTemp > goalTemp - closeLowTempRange) || (curTemp < goalTemp + closeHighTempRange)) && rateError > 0) {
+    rateError *= closeKdMultiplier;
+  }
 
   output = (kp * error) + (ki * cumError) + (kd * rateError);  // PID output
 
@@ -49,7 +57,7 @@ void setup() {
   output = 0;
   rateError = 0;
   error = 0;
-  goalTemp = 90;
+  goalTemp = 100;
   curTime = prevTime = millis();
   hardwareInit();
 

@@ -2,3 +2,5 @@
 *.o
 *.csv
 *.exe
+tests/plots
+tests/csv

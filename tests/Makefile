@@ -7,8 +7,8 @@ ARD_DIR = ../temp_controller
 ######################### TEMP CONTROLLER ############################
 ARD_OBJ = temp_controller.o
 
-all: unit_tests simulate_tests
-	python .\plotcsv.py .\test3.csv
+all: simulate_tests
+	python .\plotcsv.py 
 
 unit_tests simulate_tests: % : %.o mocks.o $(ARD_OBJ)
 	${CC} ${CFLAGS} $^ -o $@
@@ -26,4 +26,4 @@ $(ARD_OBJ): $(ARD_DIR)/temp_controller.ino
 
 .PHONY: clean
 clean:
-	rm -r -f *.o *.exe *.csv $(OBJS_DIR)
+	rm -r -f *.o *.exe *.csv $(OBJS_DIR) csv plots

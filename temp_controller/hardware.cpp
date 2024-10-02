@@ -9,11 +9,12 @@
 #include <OneWire.h>
 #endif
 #include "hardware.h"
+#include "constants.h"
 
 #define ENGAGE_SERVO_PIN 8  // Servo to engage gears
 #define MAIN_SERVO_PIN 9     // Servo to move faucet
-#define RELAY_PIN 10          // Relay to servos
-#define THERM_PIN 11         // Pin for the thermometer
+#define RELAY_PIN 11          // Relay to servos
+#define THERM_PIN 10         // Pin for the thermometer
 #define DIAL_PIN A0          // Dial
 #define MAX_DIAL 1023        // Max analog read value
 
@@ -80,6 +81,7 @@ void hardwareInit() {
   int remove = fullRange / 10;
   faucetMin = remove;
   faucetMax = remove + (fullRange / 2);  // Min value + 90 degrees
+  mainServo.write(faucetMin);
 #ifndef MOCK_TEMP
   thermInit();
 #endif

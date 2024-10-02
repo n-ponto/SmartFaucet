@@ -7,6 +7,7 @@
 #include "..\temp_controller\constants.h"
 
 long mockTime = 0;
+uint8_t mockGoal = 100;
 
 float (*getTempFunction)(void);
 
@@ -44,7 +45,7 @@ float getTemp() {
 }
 
 uint8_t getGoalTemp() {
-  return 90;
+  return mockGoal;
 }
 
 void setFaucet(uint8_t value) {

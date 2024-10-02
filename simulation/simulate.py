@@ -7,7 +7,7 @@ from serial.tools import list_ports
 from threading import Thread
 
 HOT_WATER = 120
-COLD_WATER = 50
+COLD_WATER = 55
 MAX_FAUCET = 255
 current_hot_water = COLD_WATER
 prev_faucet_temp = COLD_WATER
