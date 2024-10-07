@@ -11,12 +11,10 @@
 
 typedef unsigned char uint8_t;
 
-extern uint8_t curFaucet;
 extern uint8_t goalTemp;
 extern float curTemp;
-
-extern double error, cumError, rateError, output;
-extern double kp, ki, kd;
+extern float pTerm, iTerm, dTerm, output;
+extern float kp, ki, kd;
 
 void assert(char check, std::string message);
 void assertionFailure(std::string message);
@@ -41,9 +39,9 @@ void setMotorEnable(bool enable);
 void updateScreen(uint8_t temp, uint8_t goal);
 
 // Arduino build-in functions
-double constrain(double value, double min, double max);
+float constrain(float value, float min, float max);
 void delay(unsigned long ms);
 unsigned long millis();
-uint8_t abs(uint8_t value);
+// uint8_t abs(uint8_t value);
 
 #endif  // TESTS_H_

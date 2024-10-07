@@ -1,8 +1,7 @@
-// #define SIMULATE
+// #define SIMULATE  // Reads from serial connection to determine the temp values
+// #define MOCK_TEMP  // Doesn't try to connect to thermometer, uses set temp value
 #include <Arduino.h>
-// #include <ServoTimer2.h>
 #include <Adafruit_SoftServo.h>
-// #include <Servo.h>
 #include <LiquidCrystal.h>
 #ifndef MOCK_TEMP
 #include <DallasTemperature.h>
@@ -12,14 +11,14 @@
 #include "constants.h"
 
 #define ENGAGE_SERVO_PIN 8  // Servo to engage gears
-#define MAIN_SERVO_PIN 9     // Servo to move faucet
-#define RELAY_PIN 11          // Relay to servos
-#define THERM_PIN 10         // Pin for the thermometer
-#define DIAL_PIN A0          // Dial
-#define MAX_DIAL 1023        // Max analog read value
+#define MAIN_SERVO_PIN 9    // Servo to move faucet
+#define RELAY_PIN 11        // Relay to servos
+#define THERM_PIN 10        // Pin for the thermometer
+#define DIAL_PIN A0         // Dial
+#define MAX_DIAL 1023       // Max analog read value
 
 #define ENGAGE_SERVO_TOP 10      // Top angle for the engage servo
-#define ENGAGE_SERVO_BOTTOM 170  // Bottom angle for the engage servo
+#define ENGAGE_SERVO_BOTTOM 150  // Bottom angle for the engage servo
 
 #define ENGAGE_SERVO_DELAY 300  // Time in ms to wait for the servo to engage/disengage
 #define RELAY_DELAY 15          // Time in ms to wait for the relay to engage/disengage
@@ -91,6 +90,7 @@ void manualControlMotor() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Stepper:");
+  digitalWrite(RELAY_PIN, HIGH);
   char goalStr[4];
   int value;
   uint8_t goalPosition;
@@ -118,7 +118,10 @@ void updateScreen(uint8_t temp, uint8_t goal) {
 
 /// Read the tempurature from the thermometer
 float getTemp() {
-#ifndef MOCK_TEMP
+#ifdef MOCK_TEMP
+  // Use constant therm value
+  tempReading = 90;
+#else  // Simulate or normal operation
   // Get real tempurature reading from thermometer
   sensors.requestTemperatures();
   float temp = sensors.getTempF(thermAddr);
@@ -136,15 +139,6 @@ float getTemp() {
 #ifndef SIMULATE
   tempReading = temp;
 #endif
-#else
-  // Instead of reading from the thermometer, read from the serial port
-  if (Serial.available() > 0) {
-    int val = Serial.parseInt();
-    Serial.readString();
-    Serial.print("Got value: ");
-    Serial.println(val);
-    tempReading = val;
-  }
 #endif
 #ifdef SIMULATE
   // Overwrite real value with simulated value from computer

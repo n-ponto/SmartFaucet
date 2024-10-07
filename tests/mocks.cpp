@@ -8,6 +8,7 @@
 
 long mockTime = 0;
 uint8_t mockGoal = 100;
+uint8_t mockFaucet = 0;
 
 float (*getTempFunction)(void);
 
@@ -50,7 +51,7 @@ uint8_t getGoalTemp() {
 
 void setFaucet(uint8_t value) {
   // printf("Setting faucet to %f\n", value);
-  curFaucet = (int)value;
+  mockFaucet = value;
 }
 
 void setMotorEnable(bool enable) {
@@ -65,7 +66,7 @@ void _Serial::println(const char* message) {
   printf("%s\n", message);
 }
 
-double constrain(double value, double min, double max) {
+float constrain(float value, float min, float max) {
   if (value < min) {
     value = min;
   } else if (value > max) {
@@ -84,6 +85,6 @@ unsigned long millis() {
   return temp;
 }
 
-uint8_t abs(uint8_t value) {
-  return value < 0 ? -value : value;
-}
+// uint8_t abs(uint8_t value) {
+//   return value < 0 ? -value : value;
+// }

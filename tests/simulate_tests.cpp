@@ -18,6 +18,7 @@ extern float (*getTempFunction)(void);
 #define HIGH_TEMP_COST 100  // Multiply the error by this value if the temp is too high
 
 extern uint8_t mockGoal;
+extern uint8_t mockFaucet;
 
 const int realDelayMs = 600;     // Delay in ms before temp reflects faucet change
 const int thermDelayMs = 10000;  // Delay in ms before thermometer reflects real temp value
@@ -36,7 +37,7 @@ double thermTemp;        // Moving average of real temp
 
 float simulateTemp() {
   // Calculate real water temp based on faucet
-  double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
+  double coldPercent = (double)(mockFaucet) / 2 / MAX_FAUCET;
   double hotPercent = 1.0 - coldPercent;
   theoreticalTemp = (hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent);
   realTemp = realTemp * (1 - realDelayWeight) + theoreticalTemp * realDelayWeight;
@@ -51,7 +52,7 @@ float simulateTemp() {
 
 // Arrays to record the real temp and thermometer temp values
 std::vector<double> realTemps, thermTemps, theoryTemps;
-std::vector<double> outputs, errors, cumErrors, rateErrors;
+std::vector<double> outputs, ps, is, ds;
 std::vector<int> faucets;
 
 void initValues(int loopSamples) {
@@ -59,9 +60,9 @@ void initValues(int loopSamples) {
   thermTemps = std::vector<double>(loopSamples);
   theoryTemps = std::vector<double>(loopSamples);
   outputs = std::vector<double>(loopSamples);
-  errors = std::vector<double>(loopSamples);
-  cumErrors = std::vector<double>(loopSamples);
-  rateErrors = std::vector<double>(loopSamples);
+  ps = std::vector<double>(loopSamples);
+  is = std::vector<double>(loopSamples);
+  ds = std::vector<double>(loopSamples);
   faucets = std::vector<int>(loopSamples);
 }
 
@@ -70,22 +71,22 @@ void recordValues(int i) {
   realTemps[i] = realTemp;
   thermTemps[i] = thermTemp;
   theoryTemps[i] = theoreticalTemp;
-  faucets[i] = (double)curFaucet * 100 / MAX_FAUCET;  // Convert to percentage
+  faucets[i] = (double)mockFaucet * 100 / MAX_FAUCET;  // Convert to percentage
   outputs[i] = output;
-  errors[i] = error * kp;
-  cumErrors[i] = cumError * ki;
-  rateErrors[i] = rateError * kd;
+  ps[i] = pTerm;
+  is[i] = iTerm;
+  ds[i] = dTerm;
 }
 
 void saveValuesToCSV(std::string filename, int loopSamples) {
   std::ofstream file;
   file.open(filename);
   if (!file.is_open()) {
-    assertionFailure("Could not open file");
+    assertionFailure("Could not open file " + filename);
   }
   file << "Time (ms), Theory Temp (F),Real temp (F),Therm temp (F),Faucet (%),Output,P,I,D" << std::endl;
   for (int i = 0; i < loopSamples; i++) {
-    file << (i * SAMPLE_PERIOD) << "," << theoryTemps[i] << "," << realTemps[i] << "," << thermTemps[i] << "," << faucets[i] << "," << outputs[i] << "," << errors[i] << "," << cumErrors[i] << "," << rateErrors[i] << std::endl;
+    file << (i * SAMPLE_PERIOD) << "," << theoryTemps[i] << "," << realTemps[i] << "," << thermTemps[i] << "," << faucets[i] << "," << outputs[i] << "," << ps[i] << "," << is[i] << "," << ds[i] << std::endl;
   }
   file.close();
 }
@@ -220,7 +221,7 @@ void generateValues(double center, double arr[VALUES_SIZE], double range) {
 }
 
 void drillInPID() {
-  const double startKp = 5, startKd = 5000, startKi = 0.00001;
+  const double startKp = 5, startKd = 5000;
 
   double kpValues[VALUES_SIZE];
   double kiValues[VALUES_SIZE];

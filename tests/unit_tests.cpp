@@ -9,6 +9,7 @@
 
 double hotWaterTemp;
 extern float (*getTempFunction)(void);
+extern uint8_t mockFaucet;
 
 /// @brief Check if a value is within a range of a target
 /// @param value value to check
@@ -24,14 +25,14 @@ bool inRange(int value, int target, int range) {
 /// @param hot hot water temp
 /// @param faucet amount the cold faucet is open
 float simpleSetTemp() {
-  double coldPercent = (double)(curFaucet) / 2 / MAX_FAUCET;
+  double coldPercent = (double)(mockFaucet) / 2 / MAX_FAUCET;
   double hotPercent = 1.0 - coldPercent;
   return (hotWaterTemp * hotPercent) + (COLD_WATER * coldPercent);
 }
 
 void testInit() {
   // Check that the initial faucet value is 0
-  assert(curFaucet == 0, "faucet should be 0");
+  assert(mockFaucet == 0, "faucet should be 0");
 
   hotWaterTemp = COLD_WATER;
   assert(getTemp() == COLD_WATER, "temp should be cold");
@@ -39,19 +40,19 @@ void testInit() {
   unsigned char expectedTemp, actualValue;
   hotWaterTemp = HOT_WATER;
   setFaucet(MAX_FAUCET / 2);
-  assert(inRange(curFaucet, MAX_FAUCET / 2, 1), "faucet should be half, was " + std::to_string(curFaucet));
+  assert(inRange(mockFaucet, MAX_FAUCET / 2, 1), "faucet should be half, was " + std::to_string(mockFaucet));
   expectedTemp = COLD_WATER * 0.25 + hotWaterTemp * 0.75;
   actualValue = getTemp();
   assert(inRange(actualValue, expectedTemp, 1), "1 expected temp: " + std::to_string(expectedTemp) + ", was " + std::to_string(getTemp()));
 
   setFaucet(MAX_FAUCET);
-  assert(inRange(curFaucet, MAX_FAUCET, 1), "faucet should be full, was " + std::to_string(curFaucet));
+  assert(inRange(mockFaucet, MAX_FAUCET, 1), "faucet should be full, was " + std::to_string(mockFaucet));
   expectedTemp = (COLD_WATER * 0.5) + (hotWaterTemp * 0.5);
   actualValue = getTemp();
   assert(inRange(actualValue, expectedTemp, 1), "2 expected temp: " + std::to_string(expectedTemp));
 
   setFaucet(0);
-  assert(curFaucet == 0, "faucet should be 0");
+  assert(mockFaucet == 0, "faucet should be 0");
   actualValue = getTemp();
   assert(actualValue == hotWaterTemp, "3 expected temp: " + std::to_string(hotWaterTemp));
 
@@ -59,7 +60,7 @@ void testInit() {
 }
 
 void testOneColdLoop() {
-  assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
+  assert(mockFaucet == 0, "faucet should init 0, was " + std::to_string(mockFaucet));
 
   // Hot water is cold, so should do nothing
   hotWaterTemp = COLD_WATER;
@@ -68,7 +69,7 @@ void testOneColdLoop() {
   // printf("Done looping\n");
   float temp = getTemp();
   // printf("Got temp: %d\n", temp);
-  assert(0.1 > curFaucet && curFaucet >= 0, "faucet should be 0, was " + std::to_string(curFaucet));
+  assert(0.1 > mockFaucet && mockFaucet >= 0, "faucet should be 0, was " + std::to_string(mockFaucet));
   assert(output <= 0, "output should be <=0, was " + std::to_string(output));
   assert(temp < goalTemp, "temp should be less than goal temp, was " + std::to_string((int)temp) + " goal temp: " + std::to_string(goalTemp));
 
@@ -77,7 +78,7 @@ void testOneColdLoop() {
 }
 
 void testColdWater() {
-  assert(curFaucet == 0, "faucet should init 0, was " + std::to_string(curFaucet));
+  assert(mockFaucet == 0, "faucet should init 0, was " + std::to_string(mockFaucet));
 
   // Hot water is cold, do nothing
   hotWaterTemp = COLD_WATER;
@@ -91,7 +92,7 @@ void testColdWater() {
 
     assert(output <= 0, "output should be 0, was " + std::to_string(output));
     // Should never try to move the faucet since the water is already cold
-    assert(0.1 > curFaucet && curFaucet >= 0, "faucet should be 0, was " + std::to_string(curFaucet) + " i: " + std::to_string(i));
+    assert(0.1 > mockFaucet && mockFaucet >= 0, "faucet should be 0, was " + std::to_string(mockFaucet) + " i: " + std::to_string(i));
   }
 
   std::cout << "Test cold water passed!" << std::endl;
