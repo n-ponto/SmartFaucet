@@ -38,7 +38,7 @@ void refreshServos() {
 }
 
 void hardwareInit() {
-  // Do nothing
+  mockFaucet = 0;
 }
 
 float getTemp() {

@@ -9,65 +9,64 @@
 #include "constants.h"
 
 #define CUM_ERROR_DECAY 0.95
+#define CLOSE_LOW_TEMP 10  // How close to the goal temperature to use the derivative term
+#define CLOSE_HIGH_TEMP 4
+#define RATE_ERR_AVG_WEIGHT 0.3  // How much the new rate error impacts the previous rate error
+#define INIT_GOAL_TEMP 100
+#define ROUND(x) (x + 0.5)
 
-unsigned long lastSampleTime = 0;
+const float prevRateErrAvgWeight = 1.0 - RATE_ERR_AVG_WEIGHT;
+const float kdMultiplier = 5;
 unsigned long lastMotorUpdateTime = 0;
 
-const float closeLowTempRange = 10;
-const float closeHighTempRange = 2;  // The range of temperatures that are considered "close" to the goal temperature
-float kp = 0.6;
+float kp = 0.2;
 float ki = 0.0000;
-float kd = 10;
-float closeKdMultiplier = 350;   // Multiply derivative term by this amount when close to the goal temperature
-float rateErrorAvgWeight = 0.3;  // How much the new rate error impacts the previous rate error
+float kd = 400;
 float pTerm, iTerm, dTerm;
+bool approachingGoal;
 
-float goalFaucet, curFaucet;
+float goalFaucet;
+uint8_t curFaucet;
 uint8_t goalTemp;
 float curTemp;
-unsigned long curTime;
-
-unsigned long prevTime;
-float elapsedTime;
+unsigned long curTime, prevTime, elapsedTime;
 float error, rateError, cumError, lastError, prevRateError;
 float input, output;
 
 void computePID() {
-  elapsedTime = (float)(curTime - prevTime);  // compute time elapsed from previous computation
+  elapsedTime = curTime - prevTime;  // compute time elapsed from previous computation
 
-  error = curTemp - goalTemp;                                       // determine error
-  cumError = (error * elapsedTime) + (cumError * CUM_ERROR_DECAY);  // compute integral
-  rateError = (error - lastError) / elapsedTime;                    // compute derivative
-  rateError = (rateError * rateErrorAvgWeight) + ((1.0 - rateErrorAvgWeight) * prevRateError);
+  error = curTemp - goalTemp;                                                              // determine error
+  cumError = (error * elapsedTime) + (cumError * CUM_ERROR_DECAY);                         // compute integral
+  rateError = (error - lastError) / elapsedTime;                                           // compute derivative
+  rateError = (rateError * RATE_ERR_AVG_WEIGHT) + (prevRateErrAvgWeight * prevRateError);  // Moving average of rate error
 
-  // If near the goal temperature and getting hotter, increase the derivative term
-  bool approachingGoal = ((curTemp > goalTemp - closeLowTempRange) || (curTemp < goalTemp + closeHighTempRange)) && rateError > 0;
+  // If near the goal temperature and getting hotter, use derivative term
+  approachingGoal = (rateError > 0) && (curTemp > goalTemp - CLOSE_LOW_TEMP) && (curTemp < goalTemp - CLOSE_HIGH_TEMP);
 
   pTerm = (kp * error);
   iTerm = (ki * cumError);
-  dTerm = (kd * rateError) * (approachingGoal ? closeKdMultiplier : 1);
-
+  dTerm = (kd * rateError) * (approachingGoal ? kdMultiplier : 1.0);
   output = pTerm + iTerm + dTerm;  // PID output
 
-  lastError = error;   // remember current error
-  prevTime = curTime;  // remember current time
+  // Remember values for next iteration
+  lastError = error;
   prevRateError = rateError;
+  prevTime = curTime;
 }
 
 void setup() {
-  Serial.begin(9600);
-  curFaucet = 0;
-  cumError = 0;
-  lastError = 0;
-  input = 0;
-  output = 0;
-  rateError = prevRateError = 0;
-  error = 0;
-  goalTemp = 100;
+  pTerm = iTerm = dTerm = 0;
+  approachingGoal = false;
+  goalFaucet = curFaucet = 0;
+  goalTemp = INIT_GOAL_TEMP;
+  curTemp = 0;
   curTime = millis();
   prevTime = curTime - SAMPLE_PERIOD;
+  elapsedTime = 0;
+  error = rateError = cumError = lastError = prevRateError = 0;
+  input = output = 0;
   hardwareInit();
-  // manualControlMotor();
 
   // Run initial computation to get the first output
   goalTemp = getGoalTemp();
@@ -77,21 +76,20 @@ void setup() {
 
 void loop() {
   curTime = millis();
-  if (curTime >= lastSampleTime + SAMPLE_PERIOD) {
+  if (curTime >= prevTime + SAMPLE_PERIOD) {
     goalTemp = getGoalTemp();
     curTemp = getTemp();
     computePID();
     goalFaucet = constrain(output + goalFaucet, 0, MAX_FAUCET);
-    updateScreen(curTemp + 0.5, goalTemp);
-    if (abs(goalFaucet - curFaucet) >= 1) {
+    updateScreen(ROUND(curTemp), goalTemp);
+    if (abs(ROUND(goalFaucet) - curFaucet) >= 1) {
       // Faucet setting is integer, so change must be at least 1
-      setFaucet(goalFaucet);
-      curFaucet = goalFaucet;
+      curFaucet = uint8_t(ROUND(goalFaucet));
+      setFaucet(curFaucet);
       lastMotorUpdateTime = curTime;
     } else if (curTime > lastMotorUpdateTime + MOTOR_DISABLE_DELAY) {
       setMotorEnable(false);  // Disable motor
     }
-    lastSampleTime = curTime;
   }
   // Update servos
   refreshServos();

@@ -102,6 +102,7 @@ void lowTempFluctuationSimulation(int runSecs, int goal) {
   int loopSamples = runSecs * 1000 / SAMPLE_PERIOD;
   initValues(loopSamples);  // Initialize the values arrays for making the plots
 
+  setup();
   for (int i = 0; i < loopSamples; i++) {
     loop();
     recordValues(i);
