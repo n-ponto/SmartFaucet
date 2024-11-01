@@ -43,9 +43,6 @@ float simulateTemp() {
   realTemp = realTemp * (1 - realDelayWeight) + theoreticalTemp * realDelayWeight;
 
   // Delay the thermometer reading
-  // thermometerQueue.push(realTemp);
-  // thermTemp = thermometerQueue.front();
-  // thermometerQueue.pop();
   thermTemp = thermTemp * (1 - thermDelayWeight) + realTemp * thermDelayWeight;
   return thermTemp;
 }
